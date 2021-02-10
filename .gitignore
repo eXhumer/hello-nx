@@ -1,0 +1,12 @@
+# VSCode Workspace Directory
+/.vscode/
+# Compiled deko3d shaders
+/romfs/shaders/*.dksh
+# Compiled objects
+/source/*.o
+# Generated dependencies
+/source/*.d
+# Switch Binary Outputs
+/*.nacp
+/*.elf
+/*.nro
