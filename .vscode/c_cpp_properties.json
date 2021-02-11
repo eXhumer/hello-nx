@@ -6,6 +6,7 @@
                 "${env:DEVKITPRO}/libnx/include/",
                 "${env:DEVKITPRO}/portlibs/switch/include/",
                 "${workspaceFolder}/include/",
+                "${workspaceFolder}/data/",
                 "${workspaceFolder}/libs/nanovg/include/"
             ],
             "defines": [

@@ -12,10 +12,21 @@
 
 #include "perf.h"
 #include "hello.h"
+#include "audio_sample_bin.h"
 
 #if defined(DEBUG_NXLINK)
 static int nxlink_sock = -1;
 #endif /* DEBUG_NXLINK */
+
+static const AudioRendererConfig ar_config =
+{
+	.output_rate     = AudioRendererOutputRate_48kHz,
+	.num_voices      = 24,
+	.num_effects     = 0,
+	.num_sinks       = 1,
+	.num_mix_objs    = 1,
+	.num_mix_buffers = 2,
+};
 
 extern "C" void userAppInit(void)
 {
@@ -24,6 +35,9 @@ extern "C" void userAppInit(void)
 		diagAbortWithResult(res);
 
 	if (R_FAILED(res = plInitialize(PlServiceType_User)))
+		diagAbortWithResult(res);
+
+	if (R_FAILED(res = audrenInitialize(&ar_config)))
 		diagAbortWithResult(res);
 
 
@@ -41,6 +55,7 @@ extern "C" void userAppExit(void)
 	socketExit();
 #endif /* DEBUG_NXLINK */
 
+	audrenExit();
 	plExit();
 	romfsExit();
 }
@@ -67,6 +82,7 @@ private:
 	dk::UniqueSwapchain m_swapchain;
 
 	std::optional<CMemPool> m_pool_images;
+	std::optional<CMemPool> m_pool_audio;
 	std::optional<CMemPool> m_pool_code;
 	std::optional<CMemPool> m_pool_data;
 
@@ -78,6 +94,10 @@ private:
 	dk::Image m_framebuffers[NumFramebuffers];
 	CMemPool::Handle m_framebuffers_mem[NumFramebuffers];
 	DkCmdList m_framebuffer_cmdlists[NumFramebuffers];
+	CMemPool::Handle m_audioBuffer;
+
+	AudioDriverWaveBuf wavebuf;
+	AudioDriver drv;
 
 	std::optional<nvg::DkRenderer> m_renderer;
 	NVGcontext* m_vg;
@@ -97,8 +117,11 @@ public:
 		// Create the main queue
 		this->m_queue = dk::QueueMaker{this->m_device}.setFlags(DkQueueFlags_Graphics).create();
 
+		uint32_t audio_pool_size = (audio_sample_bin_size + 0xFFF) &~ 0xFFF;
+
 		// Create the memory pools
 		this->m_pool_images.emplace(this->m_device, DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image, 16*1024*1024);
+		this->m_pool_audio.emplace(this->m_device, DkMemBlockFlags_CpuCached | DkMemBlockFlags_GpuUncached, audio_pool_size);
 		this->m_pool_code.emplace(this->m_device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code, 128*1024);
 		this->m_pool_data.emplace(this->m_device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached, 1*1024*1024);
 
@@ -106,6 +129,11 @@ public:
 		this->m_cmdbuf = dk::CmdBufMaker{this->m_device}.create();
 		CMemPool::Handle cmdmem = this->m_pool_data->allocate(StaticCmdSize);
 		this->m_cmdbuf.addMemory(cmdmem.getMemBlock(), cmdmem.getOffset(), cmdmem.getSize());
+
+		// Create aligned audio memory from audio memory pool
+		m_audioBuffer = this->m_pool_audio->allocate(audio_sample_bin_size, 0x1000);
+		memcpy(m_audioBuffer.getCpuAddr(), audio_sample_bin, audio_sample_bin_size);
+		m_audioBuffer.getMemBlock().flushCpuCache(0, audio_pool_size);
 
 		// Create the framebuffer resources
 		this->createFramebufferResources();
@@ -119,16 +147,47 @@ public:
 		padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 		padInitializeDefault(&this->m_pad);
 
+		wavebuf = {0};
+		wavebuf.data_raw = m_audioBuffer.getCpuAddr();
+		wavebuf.size = audio_sample_bin_size;
+		wavebuf.start_sample_offset = 0;
+		wavebuf.end_sample_offset = audio_sample_bin_size/2;
+
 		Result rc;
 		PlFontData font;
 		if (R_FAILED(rc = plGetSharedFontByType(&font, PlSharedFontType_Standard)))
 			diagAbortWithResult(rc);
+
+		if (R_FAILED(rc = audrvCreate(&drv, &ar_config, 2)))
+			diagAbortWithResult(rc);
+
+		int mpid = audrvMemPoolAdd(&drv, m_audioBuffer.getCpuAddr(), audio_pool_size);
+		audrvMemPoolAttach(&drv, mpid);
+
+		static const u8 sink_channels[] = { 0, 1 };
+		/*int sink =*/ audrvDeviceSinkAdd(&drv, AUDREN_DEFAULT_DEVICE_NAME, 2, sink_channels);
+
+		if (R_FAILED(rc = audrvUpdate(&drv)))
+			diagAbortWithResult(rc);
+
+		if (R_FAILED(rc = audrenStartAudioRenderer()))
+			diagAbortWithResult(rc);
+
+		audrvVoiceInit(&drv, 0, 1, PcmFormat_Int16, 48000);
+		audrvVoiceSetDestinationMix(&drv, 0, AUDREN_FINAL_MIX_ID);
+		audrvVoiceSetMixFactor(&drv, 0, 1.0f, 0, 0);
+		audrvVoiceSetMixFactor(&drv, 0, 1.0f, 0, 1);
+		audrvVoiceStart(&drv, 0);
 
 		this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
 	}
 
 	~HelloWorldDkApp()
 	{
+        audrvClose(&drv);
+
+		m_audioBuffer.destroy();
+
 		// Destroy the framebuffer resources. This should be done first.
 		this->destroyFramebufferResources();
 
@@ -264,10 +323,21 @@ public:
 
 	bool onFrame(u64 ns) override
 	{
+		Result res;
 		padUpdate(&this->m_pad);
 		u64 kDown = padGetButtonsDown(&this->m_pad);
 		if (kDown & KEY_PLUS)
 			return false;
+
+		if (kDown & KEY_A)
+		{
+			audrvVoiceStop(&drv, 0);
+			audrvVoiceAddWaveBuf(&drv, 0, &wavebuf);
+			audrvVoiceStart(&drv, 0);
+		}
+
+		if (R_FAILED(res = audrvUpdate(&drv)))
+			diagAbortWithResult(res);
 
 		// hidKeysHeld alternate not provided with libnx v4.0.0 +
 		// using kDown instead. Renders for a single frame when pressed

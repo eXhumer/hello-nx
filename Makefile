@@ -52,7 +52,7 @@ OFILES_SRC	:=	$(CFILES:%.c=%.o) $(CPPFILES:%.cpp=%.o)
 OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
 DEPENDS		:=	$(OFILES_SRC:%.o=%.d)
 INCFLAGS	:=	$(foreach LIBDIR,$(LIBDIRS),-I$(LIBDIR)/include) \
-				$(foreach INCLUDE,$(INCLUDES),-I$(INCLUDE))
+				$(foreach INCLUDE,$(INCLUDES),-I$(INCLUDE)) -I$(DATA)
 LIBPATHS	:=	$(foreach LIBDIR,$(LIBDIRS),-L$(LIBDIR)/lib)
 
 ifeq ($(strip $(CPPFILES)),)

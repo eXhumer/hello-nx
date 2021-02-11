@@ -8,3 +8,6 @@
 /*.nacp
 /*.elf
 /*.nro
+# Compiled headers/objects from binary files
+/data/*.bin.o
+/data/*_bin.h
