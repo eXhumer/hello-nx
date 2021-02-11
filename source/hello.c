@@ -7,7 +7,7 @@
 
 void initHelloWorld(HelloWorldScreenData* data)
 {
-    char helloWorldText[32] = "Hello World!";
+	char helloWorldText[32] = "Hello World!";
 	memset(data, 0, sizeof(HelloWorldScreenData));
 	strncpy(data->helloWorldText, helloWorldText, sizeof(helloWorldText));
 	data->helloWorldText[strlen(helloWorldText)-1] = '\0';
@@ -15,9 +15,9 @@ void initHelloWorld(HelloWorldScreenData* data)
 
 void renderHelloWorld(NVGcontext* vg, float w, float h, float x, float y, HelloWorldScreenData* data)
 {
-    // Set Screen Background to "Grey"
-    nvgBeginPath(vg);
-    nvgRect(vg, x, y, w, h);
+	// Set Screen Background to "Grey"
+	nvgBeginPath(vg);
+	nvgRect(vg, x, y, w, h);
 	nvgFillColor(vg, nvgRGBA(0, 0, 0, 128));
 	nvgFill(vg);
 
