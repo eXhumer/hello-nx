@@ -30,10 +30,6 @@ DEFINES		+=	-DVERSION_MINOR=$(VERSION_MINOR)
 DEFINES		+=	-DVERSION_PATCH=$(VERSION_PATCH)
 # Enable NXLink Debugging
 # DEFINES		+=	-DDEBUG_NXLINK
-# Use GLFW instead of Deko3D
-# DEFINES		+=	-DUSE_OPENGL_GLFW
-# Use EGL instead of Deko3D
-# DEFINES		+=	-DUSE_OPENGL_EGL
 
 CFLAGS		:=	-Wall -O3 -ffunction-sections \
 				$(ARCH) $(DEFINES)
@@ -42,10 +38,6 @@ CXXFLAGS	:=	-std=gnu++2a -fno-exceptions -fno-rtti
 
 LDFLAGS		:=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH)
 
-# For EGL Builds
-# LIBS	:= -lnanovg -lglad -lEGL -lglapi -ldrm_nouveau -lnx
-# For GLFW Builds
-# LIBS	:= -lnanovg -lglfw3 -lglad -lEGL -lglapi -ldrm_nouveau -lnx
 # For Deko3D Builds (smallest binary output)
 LIBS	:= -lnanovg -ldeko3d -lnx
 

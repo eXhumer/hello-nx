@@ -1,5 +1,4 @@
 #if defined(__SWITCH__)
-#if !defined(USE_OPENGL_GLFW) && !defined(USE_OPENGL_EGL)
 // Deko3D Framework Headers
 #include <nanovg/framework/CApplication.h>
 #include <nanovg/framework/CMemPool.h>
@@ -16,7 +15,7 @@
 
 #if defined(DEBUG_NXLINK)
 static int nxlink_sock = -1;
-#endif
+#endif /* DEBUG_NXLINK */
 
 extern "C" void userAppInit(void)
 {
@@ -31,7 +30,7 @@ extern "C" void userAppInit(void)
 #if defined(DEBUG_NXLINK)
 	socketInitializeDefault();
 	nxlink_sock = nxlinkStdioForDebug();
-#endif
+#endif /* DEBUG_NXLINK */
 }
 
 extern "C" void userAppExit(void)
@@ -40,7 +39,7 @@ extern "C" void userAppExit(void)
 	if (nxlink_sock != -1)
 		close(nxlink_sock);
 	socketExit();
-#endif
+#endif /* DEBUG_NXLINK */
 
 	plExit();
 	romfsExit();
@@ -60,8 +59,8 @@ namespace
 class HelloWorldDkApp final : public CApplication
 {
 private:
-	static uint32_t FramebufferWidth;
-	static uint32_t FramebufferHeight;
+	static constexpr uint32_t FramebufferWidth = 1280;
+	static constexpr uint32_t FramebufferHeight = 720;
 
 	dk::UniqueDevice m_device;
 	dk::UniqueQueue m_queue;
@@ -265,7 +264,6 @@ public:
 
 	bool onFrame(u64 ns) override
 	{
-        chooseFramebufferSize(FramebufferWidth, FramebufferHeight, appletGetOperationMode());
 		padUpdate(&this->m_pad);
 		u64 kDown = padGetButtonsDown(&this->m_pad);
 		if (kDown & KEY_PLUS)
@@ -278,9 +276,6 @@ public:
 	}
 };
 
-uint32_t HelloWorldDkApp::FramebufferWidth;
-uint32_t HelloWorldDkApp::FramebufferHeight;
-
 // Main entrypoint
 int main(int argc, char* argv[])
 {
@@ -288,5 +283,4 @@ int main(int argc, char* argv[])
 	app.run();
 	return 0;
 }
-#endif
-#endif
+#endif /* __SWITCH__ */
