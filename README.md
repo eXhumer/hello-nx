@@ -12,5 +12,5 @@ The following packages are required for building:
 * `general-tools`
 * `switch-tools`
 
-After installing required packages, run the following command to build application;
-`make -j`
+After installing required packages, run the following command to build application:
+> `make -j`
