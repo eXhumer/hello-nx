@@ -25,6 +25,12 @@ LIBDIRS		:=	$(PORTLIBS) $(LIBNX) $(LIB_NANOVG)
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 DEFINES		:=	-D__SWITCH__
+# Enable NXLink Debugging
+# DEFINES		+=	-DDEBUG_NXLINK
+# Use GLFW instead of Deko3D
+# DEFINES		+=	-DUSE_OPENGL_GLFW
+# Use EGL instead of Deko3D
+# DEFINES		+=	-DUSE_OPENGL_EGL
 
 CFLAGS		:=	-Wall -O3 -ffunction-sections \
 				$(ARCH) $(DEFINES)
