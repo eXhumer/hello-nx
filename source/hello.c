@@ -10,7 +10,7 @@ void initHelloWorld(HelloWorldScreenData* data)
 	char helloWorldText[32] = "Hello World!";
 	memset(data, 0, sizeof(HelloWorldScreenData));
 	strncpy(data->helloWorldText, helloWorldText, sizeof(helloWorldText));
-	data->helloWorldText[strlen(helloWorldText)-1] = '\0';
+	data->helloWorldText[strlen(helloWorldText)] = '\0';
 }
 
 void renderHelloWorld(NVGcontext* vg, float w, float h, float x, float y, HelloWorldScreenData* data)
