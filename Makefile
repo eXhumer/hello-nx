@@ -29,14 +29,15 @@ DEFINES		:=	-D__SWITCH__
 CFLAGS		:=	-Wall -O3 -ffunction-sections \
 				$(ARCH) $(DEFINES)
 
-CXXFLAGS	:=	-std=gnu++1z -fno-exceptions -fno-rtti
-
-ASFLAGS		:=	$(ARCH)
+CXXFLAGS	:=	-std=gnu++2a -fno-exceptions -fno-rtti
 
 LDFLAGS		:=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH)
 
+# For EGL Builds
 # LIBS	:= -lnanovg -lglad -lEGL -lglapi -ldrm_nouveau -lnx
+# For GLFW Builds
 # LIBS	:= -lnanovg -lglfw3 -lglad -lEGL -lglapi -ldrm_nouveau -lnx
+# For Deko3D Builds (smallest binary output)
 LIBS	:= -lnanovg -ldeko3d -lnx
 
 CFILES		:=	$(foreach SOURCE,$(SOURCES),$(wildcard $(SOURCE)/*.c))
