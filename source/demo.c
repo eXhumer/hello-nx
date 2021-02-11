@@ -117,7 +117,7 @@ void drawSearchBox(NVGcontext* vg, const char* text, float x, float y, float w, 
     nvgStroke(vg);*/
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "switch-standard");
+    nvgFontFace(vg, "icons");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+h*0.55f, y+h*0.55f, cpToUTF8(ICON_SEARCH,icon), NULL);
@@ -130,7 +130,7 @@ void drawSearchBox(NVGcontext* vg, const char* text, float x, float y, float w, 
     nvgText(vg, x+h*1.05f,y+h*0.5f,text, NULL);
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "switch-standard");
+    nvgFontFace(vg, "icons");
     nvgFillColor(vg, nvgRGBA(255,255,255,32));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-h*0.55f, y+h*0.55f, cpToUTF8(ICON_CIRCLED_CROSS,icon), NULL);
@@ -160,7 +160,7 @@ void drawDropDown(NVGcontext* vg, const char* text, float x, float y, float w, f
     nvgText(vg, x+h*0.3f,y+h*0.5f,text, NULL);
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "switch-standard");
+    nvgFontFace(vg, "icons");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-h*0.5f, y+h*0.5f, cpToUTF8(ICON_CHEVRON_RIGHT,icon), NULL);
@@ -247,7 +247,7 @@ void drawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w, f
     nvgFill(vg);
 
     nvgFontSize(vg, 33);
-    nvgFontFace(vg, "switch-standard");
+    nvgFontFace(vg, "icons");
     nvgFillColor(vg, nvgRGBA(255,255,255,128));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
@@ -280,14 +280,14 @@ void drawButton(NVGcontext* vg, int preicon, const char* text, float x, float y,
     tw = nvgTextBounds(vg, 0,0, text, NULL, NULL);
     if (preicon != 0) {
         nvgFontSize(vg, h*1.3f);
-        nvgFontFace(vg, "switch-standard");
+        nvgFontFace(vg, "icons");
         iw = nvgTextBounds(vg, 0,0, cpToUTF8(preicon,icon), NULL, NULL);
         iw += h*0.15f;
     }
 
     if (preicon != 0) {
         nvgFontSize(vg, h*1.3f);
-        nvgFontFace(vg, "switch-standard");
+        nvgFontFace(vg, "icons");
         nvgFillColor(vg, nvgRGBA(255,255,255,96));
         nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
         nvgText(vg, x+w*0.5f-tw*0.5f-iw*0.75f, y+h*0.5f, cpToUTF8(preicon,icon), NULL);

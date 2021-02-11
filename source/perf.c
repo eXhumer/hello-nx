@@ -79,7 +79,7 @@ void renderGraph(NVGcontext* vg, float x, float y, PerfGraph* fps)
 	nvgFillColor(vg, nvgRGBA(255,192,0,128));
 	nvgFill(vg);
 
-	nvgFontFace(vg, "sans");
+	nvgFontFace(vg, "switch-standard");
 
 	if (fps->name[0] != '\0') {
 		nvgFontSize(vg, 12.0f);

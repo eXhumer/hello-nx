@@ -86,6 +86,8 @@ private:
     NVGcontext* m_vg;
 
     int m_standard_font;
+    int m_emoji_font;
+    int m_icons_font;
     DemoData m_data;
     PerfGraph m_fps;
     float m_prevTime;
@@ -130,6 +132,10 @@ public:
             diagAbortWithResult(rc);
 
         this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
+        this->m_icons_font = nvgCreateFont(this->m_vg, "icons", "romfs:/fonts/entypo.ttf");
+        this->m_emoji_font = nvgCreateFont(this->m_vg, "emoji", "romfs:/fonts/NotoEmoji-Regular.ttf");
+
+        nvgAddFallbackFontId(this->m_vg, this->m_standard_font, this->m_emoji_font);
     }
 
     ~Application()
