@@ -60,7 +60,7 @@ namespace
     static constexpr unsigned StaticCmdSize = 0x1000;
 }
 
-class Application final : public CApplication
+class HelloWorldApp final : public CApplication
 {
 private:
     static constexpr uint32_t FramebufferWidth = 1280;
@@ -93,7 +93,7 @@ private:
     PadState m_pad;
 
 public:
-    Application()
+    HelloWorldApp()
     {
         // Create the deko3d device
         this->m_device = dk::DeviceMaker{}.setCbDebug(OutputDkDebug).create();
@@ -131,7 +131,7 @@ public:
         this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
     }
 
-    ~Application()
+    ~HelloWorldApp()
     {
         // Destroy the framebuffer resources. This should be done first.
         this->destroyFramebufferResources();
@@ -283,7 +283,7 @@ public:
 // Main entrypoint
 int main(int argc, char* argv[])
 {
-    Application app;
+    HelloWorldApp app;
     app.run();
     return 0;
 }
