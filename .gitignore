@@ -1,5 +1,3 @@
-# VSCode Workspace Directory
-/.vscode/
 # Compiled deko3d shaders
 /romfs/shaders/*.dksh
 # Compiled objects

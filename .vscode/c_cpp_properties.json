@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Switch (C++)",
+            "includePath": [
+                "${env:DEVKITPRO}/libnx/include/",
+                "${env:DEVKITPRO}/portlibs/switch/include/",
+                "${workspaceFolder}/include/",
+                "${workspaceFolder}/libs/nanovg/include/"
+            ],
+            "defines": [
+                "__SWITCH__"
+            ],
+            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++.exe",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "gcc-arm64"
+        }
+    ],
+    "version": 4
+}
