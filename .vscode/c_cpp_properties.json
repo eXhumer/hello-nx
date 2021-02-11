@@ -12,7 +12,7 @@
             "defines": [
                 "__SWITCH__"
             ],
-            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++.exe",
+            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
             "cppStandard": "gnu++20",
             "intelliSenseMode": "gcc-arm64"
         }
