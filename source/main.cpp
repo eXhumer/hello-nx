@@ -1,23 +1,7 @@
-// Deko3D Framework Headers
-#include <nanovg/framework/CApplication.h>
-#include <nanovg/framework/CMemPool.h>
-// C++ Standard Library Headers
-#include <array>
-#include <optional>
+#if defined(__SWITCH__)
+#include <switch.h>
+#if defined(DEBUG_NXLINK)
 #include <unistd.h>
-// nanovg Headers
-#include <nanovg.h>
-#include <nanovg_dk.h>
-
-// #include "demo.h"
-#include "perf.h"
-#include "hello.h"
-
-#if !defined(USE_OPENGL_GLFW) && !defined(USE_OPENGL_EGL)
-
-//#define DEBUG_NXLINK
-
-#ifdef DEBUG_NXLINK
 static int nxlink_sock = -1;
 #endif
 
@@ -31,7 +15,7 @@ extern "C" void userAppInit(void)
 		diagAbortWithResult(res);
 
 
-#ifdef DEBUG_NXLINK
+#if defined(DEBUG_NXLINK)
 	socketInitializeDefault();
 	nxlink_sock = nxlinkStdioForDebug();
 #endif
@@ -39,7 +23,7 @@ extern "C" void userAppInit(void)
 
 extern "C" void userAppExit(void)
 {
-#ifdef DEBUG_NXLINK
+#if defined(DEBUG_NXLINK)
 	if (nxlink_sock != -1)
 		close(nxlink_sock);
 	socketExit();
@@ -48,6 +32,20 @@ extern "C" void userAppExit(void)
 	plExit();
 	romfsExit();
 }
+
+#if !defined(USE_OPENGL_GLFW) && !defined(USE_OPENGL_EGL)
+// Deko3D Framework Headers
+#include <nanovg/framework/CApplication.h>
+#include <nanovg/framework/CMemPool.h>
+// C++ Standard Library Headers
+#include <array>
+#include <optional>
+// nanovg Headers
+#include <nanovg.h>
+#include <nanovg_dk.h>
+
+#include "perf.h"
+#include "hello.h"
 
 void OutputDkDebug(void* userData, const char* context, DkResult result, const char* message) 
 {
@@ -60,7 +58,7 @@ namespace
 	static constexpr unsigned StaticCmdSize = 0x1000;
 }
 
-class HelloWorldApp final : public CApplication
+class HelloWorldDkApp final : public CApplication
 {
 private:
 	static constexpr uint32_t FramebufferWidth = 1280;
@@ -86,14 +84,14 @@ private:
 	std::optional<nvg::DkRenderer> m_renderer;
 	NVGcontext* m_vg;
 
-	int m_standard_font;
 	HelloWorldScreenData m_data;
 	PerfGraph m_fps;
 	float m_prevTime;
+	int m_standard_font;
 	PadState m_pad;
 
 public:
-	HelloWorldApp()
+	HelloWorldDkApp()
 	{
 		// Create the deko3d device
 		this->m_device = dk::DeviceMaker{}.setCbDebug(OutputDkDebug).create();
@@ -131,7 +129,7 @@ public:
 		this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
 	}
 
-	~HelloWorldApp()
+	~HelloWorldDkApp()
 	{
 		// Destroy the framebuffer resources. This should be done first.
 		this->destroyFramebufferResources();
@@ -283,8 +281,9 @@ public:
 // Main entrypoint
 int main(int argc, char* argv[])
 {
-	HelloWorldApp app;
+	HelloWorldDkApp app;
 	app.run();
 	return 0;
 }
+#endif
 #endif
