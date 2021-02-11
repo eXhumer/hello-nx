@@ -84,7 +84,7 @@ void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, fl
     nvgStroke(vg);
 
     nvgFontSize(vg, 15.0f);
-    nvgFontFace(vg, "sans-bold");
+    nvgFontFace(vg, "switch-standard");
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
 
     nvgFontBlur(vg,2);
@@ -117,20 +117,20 @@ void drawSearchBox(NVGcontext* vg, const char* text, float x, float y, float w, 
     nvgStroke(vg);*/
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "icons");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+h*0.55f, y+h*0.55f, cpToUTF8(ICON_SEARCH,icon), NULL);
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,32));
 
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+h*1.05f,y+h*0.5f,text, NULL);
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "icons");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,32));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-h*0.55f, y+h*0.55f, cpToUTF8(ICON_CIRCLED_CROSS,icon), NULL);
@@ -154,13 +154,13 @@ void drawDropDown(NVGcontext* vg, const char* text, float x, float y, float w, f
     nvgStroke(vg);
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,160));
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+h*0.3f,y+h*0.5f,text, NULL);
 
     nvgFontSize(vg, h*1.3f);
-    nvgFontFace(vg, "icons");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-h*0.5f, y+h*0.5f, cpToUTF8(ICON_CHEVRON_RIGHT,icon), NULL);
@@ -171,7 +171,7 @@ void drawLabel(NVGcontext* vg, const char* text, float x, float y, float w, floa
     NVG_NOTUSED(w);
 
     nvgFontSize(vg, 15.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,128));
 
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
@@ -196,11 +196,10 @@ void drawEditBoxBase(NVGcontext* vg, float x, float y, float w, float h)
 
 void drawEditBox(NVGcontext* vg, const char* text, float x, float y, float w, float h)
 {
-
     drawEditBoxBase(vg, x,y, w,h);
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+h*0.3f,y+h*0.5f,text, NULL);
@@ -216,13 +215,13 @@ void drawEditBoxNum(NVGcontext* vg,
     uw = nvgTextBounds(vg, 0,0, units, NULL, NULL);
 
     nvgFontSize(vg, 15.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,64));
     nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-h*0.3f,y+h*0.5f,units, NULL);
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,128));
     nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+w-uw-h*0.5f,y+h*0.5f,text, NULL);
@@ -235,7 +234,7 @@ void drawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w, f
     NVG_NOTUSED(w);
 
     nvgFontSize(vg, 15.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,160));
 
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
@@ -248,7 +247,7 @@ void drawCheckBox(NVGcontext* vg, const char* text, float x, float y, float w, f
     nvgFill(vg);
 
     nvgFontSize(vg, 33);
-    nvgFontFace(vg, "icons");
+    nvgFontFace(vg, "switch-standard");
     nvgFillColor(vg, nvgRGBA(255,255,255,128));
     nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
     nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
@@ -277,25 +276,25 @@ void drawButton(NVGcontext* vg, int preicon, const char* text, float x, float y,
     nvgStroke(vg);
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans-bold");
+    nvgFontFace(vg, "switch-standard");
     tw = nvgTextBounds(vg, 0,0, text, NULL, NULL);
     if (preicon != 0) {
         nvgFontSize(vg, h*1.3f);
-        nvgFontFace(vg, "icons");
+        nvgFontFace(vg, "switch-standard");
         iw = nvgTextBounds(vg, 0,0, cpToUTF8(preicon,icon), NULL, NULL);
         iw += h*0.15f;
     }
 
     if (preicon != 0) {
         nvgFontSize(vg, h*1.3f);
-        nvgFontFace(vg, "icons");
+        nvgFontFace(vg, "switch-standard");
         nvgFillColor(vg, nvgRGBA(255,255,255,96));
         nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
         nvgText(vg, x+w*0.5f-tw*0.5f-iw*0.75f, y+h*0.5f, cpToUTF8(preicon,icon), NULL);
     }
 
     nvgFontSize(vg, 17.0f);
-    nvgFontFace(vg, "sans-bold");
+    nvgFontFace(vg, "switch-standard");
     nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
     nvgFillColor(vg, nvgRGBA(0,0,0,160));
     nvgText(vg, x+w*0.5f-tw*0.5f+iw*0.25f,y+h*0.5f-1,text, NULL);
@@ -804,29 +803,6 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
         }
     }
 
-    data->fontIcons = nvgCreateFont(vg, "icons", "romfs:/fonts/entypo.ttf");
-    if (data->fontIcons == -1) {
-        printf("Could not add font icons.\n");
-        return -1;
-    }
-    data->fontNormal = nvgCreateFont(vg, "sans", "romfs:/fonts/Roboto-Regular.ttf");
-    if (data->fontNormal == -1) {
-        printf("Could not add font italic.\n");
-        return -1;
-    }
-    data->fontBold = nvgCreateFont(vg, "sans-bold", "romfs:/fonts/Roboto-Bold.ttf");
-    if (data->fontBold == -1) {
-        printf("Could not add font bold.\n");
-        return -1;
-    }
-    data->fontEmoji = nvgCreateFont(vg, "emoji", "romfs:/fonts/NotoEmoji-Regular.ttf");
-    if (data->fontEmoji == -1) {
-        printf("Could not add font emoji.\n");
-        return -1;
-    }
-    nvgAddFallbackFontId(vg, data->fontNormal, data->fontEmoji);
-    nvgAddFallbackFontId(vg, data->fontBold, data->fontEmoji);
-
     return 0;
 }
 
@@ -862,7 +838,7 @@ void drawParagraph(NVGcontext* vg, float x, float y, float width, float height, 
     nvgSave(vg);
 
     nvgFontSize(vg, 15.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "switch-standard");
     nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
     nvgTextMetrics(vg, NULL, NULL, &lineh);
 

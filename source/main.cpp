@@ -1,13 +1,14 @@
+// Deko3D Framework Headers
 #include <nanovg/framework/CApplication.h>
 #include <nanovg/framework/CMemPool.h>
-
-// C++ standard library headers
+// C++ Standard Library Headers
 #include <array>
 #include <optional>
 #include <unistd.h>
-
+// nanovg Headers
 #include <nanovg.h>
 #include <nanovg_dk.h>
+
 #include "demo.h"
 #include "perf.h"
 
@@ -25,6 +26,10 @@ extern "C" void userAppInit(void)
     if (R_FAILED(res))
         diagAbortWithResult(res);
 
+    if (R_FAILED(res = plInitialize(PlServiceType_User)))
+        diagAbortWithResult(res);
+
+
 #ifdef DEBUG_NXLINK
     socketInitializeDefault();
     nxlink_sock = nxlinkStdioForDebug();
@@ -39,6 +44,7 @@ extern "C" void userAppExit(void)
     socketExit();
 #endif
 
+    plExit();
     romfsExit();
 }
 
@@ -47,106 +53,116 @@ void OutputDkDebug(void* userData, const char* context, DkResult result, const c
     printf("Context: %s\nResult: %d\nMessage: %s\n", context, result, message);
 }
 
-class DkTest final : public CApplication
+namespace
 {
     static constexpr unsigned NumFramebuffers = 2;
+    static constexpr unsigned StaticCmdSize = 0x1000;
+}
+
+class Application final : public CApplication
+{
+private:
     static constexpr uint32_t FramebufferWidth = 1280;
     static constexpr uint32_t FramebufferHeight = 720;
-    static constexpr unsigned StaticCmdSize = 0x1000;
 
-    dk::UniqueDevice device;
-    dk::UniqueQueue queue;
+    dk::UniqueDevice m_device;
+    dk::UniqueQueue m_queue;
+    dk::UniqueSwapchain m_swapchain;
 
-    std::optional<CMemPool> pool_images;
-    std::optional<CMemPool> pool_code;
-    std::optional<CMemPool> pool_data;
+    std::optional<CMemPool> m_pool_images;
+    std::optional<CMemPool> m_pool_code;
+    std::optional<CMemPool> m_pool_data;
 
-    dk::UniqueCmdBuf cmdbuf;
+    dk::UniqueCmdBuf m_cmdbuf;
+    DkCmdList m_render_cmdlist;
 
-    CMemPool::Handle depthBuffer_mem;
-    CMemPool::Handle framebuffers_mem[NumFramebuffers];
+    dk::Image m_depthBuffer;
+    CMemPool::Handle m_depthBuffer_mem;
+    dk::Image m_framebuffers[NumFramebuffers];
+    CMemPool::Handle m_framebuffers_mem[NumFramebuffers];
+    DkCmdList m_framebuffer_cmdlists[NumFramebuffers];
 
-    dk::Image depthBuffer;
-    dk::Image framebuffers[NumFramebuffers];
-    DkCmdList framebuffer_cmdlists[NumFramebuffers];
-    dk::UniqueSwapchain swapchain;
+    std::optional<nvg::DkRenderer> m_renderer;
+    NVGcontext* m_vg;
 
-    DkCmdList render_cmdlist;
-
-    std::optional<nvg::DkRenderer> renderer;
-    NVGcontext* vg;
-
-    DemoData data;
-    PerfGraph fps;
-    float prevTime;
-    PadState pad;
+    int m_standard_font;
+    DemoData m_data;
+    PerfGraph m_fps;
+    float m_prevTime;
+    PadState m_pad;
 
 public:
-    DkTest()
+    Application()
     {
         // Create the deko3d device
-        device = dk::DeviceMaker{}.setCbDebug(OutputDkDebug).create();
+        this->m_device = dk::DeviceMaker{}.setCbDebug(OutputDkDebug).create();
 
         // Create the main queue
-        queue = dk::QueueMaker{device}.setFlags(DkQueueFlags_Graphics).create();
+        this->m_queue = dk::QueueMaker{this->m_device}.setFlags(DkQueueFlags_Graphics).create();
 
         // Create the memory pools
-        pool_images.emplace(device, DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image, 16*1024*1024);
-        pool_code.emplace(device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code, 128*1024);
-        pool_data.emplace(device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached, 1*1024*1024);
+        this->m_pool_images.emplace(this->m_device, DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image, 16*1024*1024);
+        this->m_pool_code.emplace(this->m_device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code, 128*1024);
+        this->m_pool_data.emplace(this->m_device, DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached, 1*1024*1024);
 
         // Create the static command buffer and feed it freshly allocated memory
-        cmdbuf = dk::CmdBufMaker{device}.create();
-        CMemPool::Handle cmdmem = pool_data->allocate(StaticCmdSize);
-        cmdbuf.addMemory(cmdmem.getMemBlock(), cmdmem.getOffset(), cmdmem.getSize());
+        this->m_cmdbuf = dk::CmdBufMaker{this->m_device}.create();
+        CMemPool::Handle cmdmem = this->m_pool_data->allocate(StaticCmdSize);
+        this->m_cmdbuf.addMemory(cmdmem.getMemBlock(), cmdmem.getOffset(), cmdmem.getSize());
 
         // Create the framebuffer resources
-        createFramebufferResources();
+        this->createFramebufferResources();
 
-        this->renderer.emplace(FramebufferWidth, FramebufferHeight, this->device, this->queue, *this->pool_images, *this->pool_code, *this->pool_data);
-        this->vg = nvgCreateDk(&*this->renderer, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        this->m_renderer.emplace(FramebufferWidth, FramebufferHeight, this->m_device, this->m_queue, *this->m_pool_images, *this->m_pool_code, *this->m_pool_data);
+        this->m_vg = nvgCreateDk(&*this->m_renderer, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
-        initGraph(&fps, GRAPH_RENDER_FPS, "Frame Time");
+        initGraph(&m_fps, GRAPH_RENDER_FPS, "Frame Time");
 
-        if (loadDemoData(vg, &this->data) == -1) {
+        if (loadDemoData(this->m_vg, &this->m_data) == -1)
             printf("Failed to load demo data!\n");
-        }
 
         padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-        padInitializeDefault(&pad);
+        padInitializeDefault(&this->m_pad);
+
+        Result rc;
+        PlFontData font;
+        if (R_FAILED(rc = plGetSharedFontByType(&font, PlSharedFontType_Standard)))
+            diagAbortWithResult(rc);
+
+        this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
     }
 
-    ~DkTest()
+    ~Application()
     {
         // Destroy the framebuffer resources. This should be done first.
-        destroyFramebufferResources();
+        this->destroyFramebufferResources();
 
-        freeDemoData(vg, &this->data);
+        freeDemoData(this->m_vg, &this->m_data);
 
         // Cleanup vg. This needs to be done first as it relies on the renderer.
-        nvgDeleteDk(vg);
+        nvgDeleteDk(this->m_vg);
 
         // Destroy the renderer
-        this->renderer.reset();
+        this->m_renderer.reset();
     }
 
     void createFramebufferResources()
     {
       // Create layout for the depth buffer
         dk::ImageLayout layout_depthbuffer;
-        dk::ImageLayoutMaker{device}
+        dk::ImageLayoutMaker{this->m_device}
             .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
             .setFormat(DkImageFormat_S8)
             .setDimensions(FramebufferWidth, FramebufferHeight)
             .initialize(layout_depthbuffer);
 
         // Create the depth buffer
-        depthBuffer_mem = pool_images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
-        depthBuffer.initialize(layout_depthbuffer, depthBuffer_mem.getMemBlock(), depthBuffer_mem.getOffset());
+        this->m_depthBuffer_mem = this->m_pool_images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
+        this->m_depthBuffer.initialize(layout_depthbuffer, this->m_depthBuffer_mem.getMemBlock(), this->m_depthBuffer_mem.getOffset());
 
         // Create layout for the framebuffers
         dk::ImageLayout layout_framebuffer;
-        dk::ImageLayoutMaker{device}
+        dk::ImageLayoutMaker{this->m_device}
             .setFlags(DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression)
             .setFormat(DkImageFormat_RGBA8_Unorm)
             .setDimensions(FramebufferWidth, FramebufferHeight)
@@ -159,45 +175,45 @@ public:
         for (unsigned i = 0; i < NumFramebuffers; i ++)
         {
             // Allocate a framebuffer
-            framebuffers_mem[i] = pool_images->allocate(fb_size, fb_align);
-            framebuffers[i].initialize(layout_framebuffer, framebuffers_mem[i].getMemBlock(), framebuffers_mem[i].getOffset());
+            this->m_framebuffers_mem[i] = this->m_pool_images->allocate(fb_size, fb_align);
+            this->m_framebuffers[i].initialize(layout_framebuffer, this->m_framebuffers_mem[i].getMemBlock(), this->m_framebuffers_mem[i].getOffset());
 
             // Generate a command list that binds it
-            dk::ImageView colorTarget{ framebuffers[i] }, depthTarget{ depthBuffer };
-            cmdbuf.bindRenderTargets(&colorTarget, &depthTarget);
-            framebuffer_cmdlists[i] = cmdbuf.finishList();
+            dk::ImageView colorTarget{ this->m_framebuffers[i] }, depthTarget{ this->m_depthBuffer };
+            this->m_cmdbuf.bindRenderTargets(&colorTarget, &depthTarget);
+            this->m_framebuffer_cmdlists[i] = this->m_cmdbuf.finishList();
 
             // Fill in the array for use later by the swapchain creation code
-            fb_array[i] = &framebuffers[i];
+            fb_array[i] = &this->m_framebuffers[i];
         }
 
         // Create the swapchain using the framebuffers
-        swapchain = dk::SwapchainMaker{device, nwindowGetDefault(), fb_array}.create();
+        this->m_swapchain = dk::SwapchainMaker{this->m_device, nwindowGetDefault(), fb_array}.create();
 
         // Generate the main rendering cmdlist
-        recordStaticCommands();
+        this->recordStaticCommands();
     }
 
     void destroyFramebufferResources()
     {
         // Return early if we have nothing to destroy
-        if (!swapchain) return;
+        if (!this->m_swapchain) return;
 
         // Make sure the queue is idle before destroying anything
-        queue.waitIdle();
+        this->m_queue.waitIdle();
 
         // Clear the static cmdbuf, destroying the static cmdlists in the process
-        cmdbuf.clear();
+        this->m_cmdbuf.clear();
 
         // Destroy the swapchain
-        swapchain.destroy();
+        this->m_swapchain.destroy();
 
         // Destroy the framebuffers
         for (unsigned i = 0; i < NumFramebuffers; i ++)
-            framebuffers_mem[i].destroy();
+            this->m_framebuffers_mem[i].destroy();
 
         // Destroy the depth buffer
-        depthBuffer_mem.destroy();
+        this->m_depthBuffer_mem.destroy();
     }
 
     void recordStaticCommands()
@@ -209,54 +225,54 @@ public:
         dk::BlendState blendState;
 
         // Configure the viewport and scissor
-        cmdbuf.setViewports(0, { { 0.0f, 0.0f, FramebufferWidth, FramebufferHeight, 0.0f, 1.0f } });
-        cmdbuf.setScissors(0, { { 0, 0, FramebufferWidth, FramebufferHeight } });
+        this->m_cmdbuf.setViewports(0, { { 0.0f, 0.0f, FramebufferWidth, FramebufferHeight, 0.0f, 1.0f } });
+        this->m_cmdbuf.setScissors(0, { { 0, 0, FramebufferWidth, FramebufferHeight } });
 
         // Clear the color and depth buffers
-        cmdbuf.clearColor(0, DkColorMask_RGBA, 0.2f, 0.3f, 0.3f, 1.0f);
-        cmdbuf.clearDepthStencil(true, 1.0f, 0xFF, 0);
+        this->m_cmdbuf.clearColor(0, DkColorMask_RGBA, 0.2f, 0.3f, 0.3f, 1.0f);
+        this->m_cmdbuf.clearDepthStencil(true, 1.0f, 0xFF, 0);
 
         // Bind required state
-        cmdbuf.bindRasterizerState(rasterizerState);
-        cmdbuf.bindColorState(colorState);
-        cmdbuf.bindColorWriteState(colorWriteState);
+        this->m_cmdbuf.bindRasterizerState(rasterizerState);
+        this->m_cmdbuf.bindColorState(colorState);
+        this->m_cmdbuf.bindColorWriteState(colorWriteState);
 
-        render_cmdlist = cmdbuf.finishList();
+        this->m_render_cmdlist = this->m_cmdbuf.finishList();
     }
 
     void render(u64 ns, int blowup)
     {
         float time = ns / 1000000000.0;
-        float dt = time - prevTime;
-        prevTime = time;
+        float dt = time - this->m_prevTime;
+        this->m_prevTime = time;
 
         // Acquire a framebuffer from the swapchain (and wait for it to be available)
-        int slot = queue.acquireImage(swapchain);
+        int slot = this->m_queue.acquireImage(this->m_swapchain);
 
         // Run the command list that attaches said framebuffer to the queue
-        queue.submitCommands(framebuffer_cmdlists[slot]);
+        this->m_queue.submitCommands(this->m_framebuffer_cmdlists[slot]);
 
         // Run the main rendering command list
-        queue.submitCommands(render_cmdlist);
+        this->m_queue.submitCommands(this->m_render_cmdlist);
 
-        updateGraph(&fps, dt);
+        updateGraph(&this->m_fps, dt);
 
-        nvgBeginFrame(vg, FramebufferWidth, FramebufferHeight, 1.0f);
+        nvgBeginFrame(this->m_vg, FramebufferWidth, FramebufferHeight, 1.0f);
         {
             // Render stuff!
-            renderDemo(vg, 0, 0, FramebufferWidth, FramebufferHeight, time, blowup, &this->data);
-            renderGraph(vg, 5,5, &fps);
+            renderDemo(this->m_vg, 0, 0, FramebufferWidth, FramebufferHeight, time, blowup, &this->m_data);
+            renderGraph(this->m_vg, 5,5, &this->m_fps);
         }
-        nvgEndFrame(vg);
+        nvgEndFrame(this->m_vg);
 
         // Now that we are done rendering, present it to the screen
-        queue.presentImage(swapchain, slot);
+        this->m_queue.presentImage(this->m_swapchain, slot);
     }
 
     bool onFrame(u64 ns) override
     {
-        padUpdate(&pad);
-        u64 kDown = padGetButtonsDown(&pad);
+        padUpdate(&this->m_pad);
+        u64 kDown = padGetButtonsDown(&this->m_pad);
         if (kDown & KEY_PLUS)
             return false;
 
@@ -270,7 +286,7 @@ public:
 // Main entrypoint
 int main(int argc, char* argv[])
 {
-    DkTest app;
+    Application app;
     app.run();
     return 0;
 }
