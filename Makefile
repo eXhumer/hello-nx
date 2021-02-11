@@ -25,6 +25,9 @@ LIBDIRS		:=	$(PORTLIBS) $(LIBNX) $(LIB_NANOVG)
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 DEFINES		:=	-D__SWITCH__
+DEFINES		+=	-DVERSION_MAJOR=$(VERSION_MAJOR)
+DEFINES		+=	-DVERSION_MINOR=$(VERSION_MINOR)
+DEFINES		+=	-DVERSION_PATCH=$(VERSION_PATCH)
 # Enable NXLink Debugging
 # DEFINES		+=	-DDEBUG_NXLINK
 # Use GLFW instead of Deko3D
