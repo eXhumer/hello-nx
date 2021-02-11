@@ -9,8 +9,9 @@
 #include <nanovg.h>
 #include <nanovg_dk.h>
 
-#include "demo.h"
+// #include "demo.h"
 #include "perf.h"
+#include "hello.h"
 
 #if !defined(USE_OPENGL_GLFW) && !defined(USE_OPENGL_EGL)
 
@@ -86,9 +87,7 @@ private:
     NVGcontext* m_vg;
 
     int m_standard_font;
-    int m_emoji_font;
-    int m_icons_font;
-    DemoData m_data;
+    HelloWorldScreenData m_data;
     PerfGraph m_fps;
     float m_prevTime;
     PadState m_pad;
@@ -119,9 +118,7 @@ public:
         this->m_vg = nvgCreateDk(&*this->m_renderer, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
         initGraph(&m_fps, GRAPH_RENDER_FPS, "Frame Time");
-
-        if (loadDemoData(this->m_vg, &this->m_data) == -1)
-            printf("Failed to load demo data!\n");
+        initHelloWorld(&this->m_data);
 
         padConfigureInput(1, HidNpadStyleSet_NpadStandard);
         padInitializeDefault(&this->m_pad);
@@ -132,18 +129,12 @@ public:
             diagAbortWithResult(rc);
 
         this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
-        this->m_icons_font = nvgCreateFont(this->m_vg, "icons", "romfs:/fonts/entypo.ttf");
-        this->m_emoji_font = nvgCreateFont(this->m_vg, "emoji", "romfs:/fonts/NotoEmoji-Regular.ttf");
-
-        nvgAddFallbackFontId(this->m_vg, this->m_standard_font, this->m_emoji_font);
     }
 
     ~Application()
     {
         // Destroy the framebuffer resources. This should be done first.
         this->destroyFramebufferResources();
-
-        freeDemoData(this->m_vg, &this->m_data);
 
         // Cleanup vg. This needs to be done first as it relies on the renderer.
         nvgDeleteDk(this->m_vg);
@@ -266,7 +257,7 @@ public:
         nvgBeginFrame(this->m_vg, FramebufferWidth, FramebufferHeight, 1.0f);
         {
             // Render stuff!
-            renderDemo(this->m_vg, 0, 0, FramebufferWidth, FramebufferHeight, time, blowup, &this->m_data);
+            renderHelloWorld(this->m_vg, FramebufferWidth, FramebufferHeight, 0, 0, &this->m_data);
             renderGraph(this->m_vg, 5,5, &this->m_fps);
         }
         nvgEndFrame(this->m_vg);
