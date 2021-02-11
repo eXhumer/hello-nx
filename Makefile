@@ -15,6 +15,7 @@ APP_VERSION	:=	$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 LIB_NANOVG	:=	libs/nanovg
 TARGET		:=	hello-nx
 SOURCES     :=	source
+DATA		:=	data
 SHADERS		:=	$(LIB_NANOVG)/shaders
 INCLUDES	:=	include
 ROMFS		:=	romfs
@@ -44,8 +45,12 @@ LIBS	:= -lnanovg -ldeko3d -lnx
 CFILES		:=	$(foreach SOURCE,$(SOURCES),$(wildcard $(SOURCE)/*.c))
 CPPFILES	:=	$(foreach SOURCE,$(SOURCES),$(wildcard $(SOURCE)/*.cpp))
 GLSLFILES	:=	$(wildcard $(SHADERS)/*.glsl)
-OFILES		+=	$(CFILES:%.c=%.o) $(CPPFILES:%.cpp=%.o)
-DEPENDS		:=	$(CFILES:%.c=%.d) $(CPPFILES:%.cpp=%.d)
+BINFILES	:=	$(wildcard $(DATA)/*.bin)
+OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
+OFILES_SRC	:=	$(CFILES:%.c=%.o) $(CPPFILES:%.cpp=%.o)
+OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
+DEPENDS		:=	$(OFILES_SRC:%.o=%.d)
 INCFLAGS	:=	$(foreach LIBDIR,$(LIBDIRS),-I$(LIBDIR)/include) \
 				$(foreach INCLUDE,$(INCLUDES),-I$(INCLUDE))
 LIBPATHS	:=	$(foreach LIBDIR,$(LIBDIRS),-L$(LIBDIR)/lib)
@@ -116,10 +121,13 @@ endif
 %.o:	%.cpp
 	$(CXX) -MMD -MP -MF $(@:%.o=%.d) $(CFLAGS) $(INCFLAGS) $(CXXFLAGS) -c $< -o $@
 
+%.bin.o:	%.bin
+	bin2s -a 8 -H $(@:%.bin.o=%_bin).h $< | $(AS) -o $@
+
 $(ELF_OUTPUT):	$(OFILES)
 	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 clean:
-	rm -f $(ROMFS_DEPS) $(NRO_OUTPUT) $(NACP_OUTPUT) $(ELF_OUTPUT) $(OFILES) $(DEPENDS)
+	rm -f $(ROMFS_DEPS) $(NRO_OUTPUT) $(NACP_OUTPUT) $(ELF_OUTPUT) $(OFILES) $(DEPENDS) $(HFILES_BIN)
 
 -include $(DEPENDS)
