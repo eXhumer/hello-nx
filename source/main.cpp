@@ -15,6 +15,20 @@ static const AudioRendererConfig ar_config =
 	.num_mix_buffers = 2,
 };
 
+static const SocketInitConfig sock_config =
+{
+    .bsdsockets_version = 1,
+    .tcp_tx_buf_size = 0x8000,
+    .tcp_rx_buf_size = 0x10000,
+    .tcp_tx_buf_max_size = 0x40000,
+    .tcp_rx_buf_max_size = 0x40000,
+    .udp_tx_buf_size = 0x2400,
+    .udp_rx_buf_size = 0xA500,
+    .sb_efficiency = 4,
+    .num_bsd_sessions = 3,
+    .bsd_service_type = BsdServiceType_User,
+};
+
 extern "C" void userAppInit(void)
 {
 	Result res = romfsInit();
@@ -27,9 +41,10 @@ extern "C" void userAppInit(void)
 	if (R_FAILED(res = audrenInitialize(&ar_config)))
 		diagAbortWithResult(res);
 
-#if defined(DEBUG_NXLINK)
-	if (R_FAILED(res = socketInitializeDefault()))
+	if (R_FAILED(res = socketInitialize(&sock_config)))
 		diagAbortWithResult(res);
+
+#if defined(DEBUG_NXLINK)
 	nxlink_sock = nxlinkStdioForDebug();
 	if (nxlink_sock > 0)
 		printf("Connected with NXLink Client!%s");
@@ -43,9 +58,9 @@ extern "C" void userAppExit(void)
 #if defined(DEBUG_NXLINK)
 	if (nxlink_sock != -1)
 		close(nxlink_sock);
-	socketExit();
 #endif /* DEBUG_NXLINK */
 
+	socketExit();
 	audrenExit();
 	plExit();
 	romfsExit();
