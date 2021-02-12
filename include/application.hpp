@@ -1,3 +1,5 @@
+#ifndef APPLICATION_HPP
+#define APPLICATION_HPP
 #if defined(__SWITCH__)
 // Deko3D Framework Headers
 #include <nanovg/framework/CApplication.h>
@@ -63,3 +65,4 @@ protected:
 	bool onFrame(u64 ns) override;
 };
 #endif /* __SWITCH__ */
+#endif /* APPLICATION_HPP */

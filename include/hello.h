@@ -18,4 +18,4 @@ void renderHelloWorld(NVGcontext* vg, float w, float h, float x, float y, HelloW
 }
 #endif
 
-#endif // HELLO_H
+#endif /* HELLO_H */

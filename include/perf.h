@@ -1,6 +1,5 @@
 #ifndef PERF_H
 #define PERF_H
-
 #include <nanovg.h>
 
 #ifdef __cplusplus
@@ -31,4 +30,4 @@ float getGraphAverage(PerfGraph* fps);
 }
 #endif
 
-#endif // PERF_H
+#endif /* PERF_H */
