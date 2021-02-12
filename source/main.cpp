@@ -5,7 +5,7 @@
 static int nxlink_sock = -1;
 #endif /* DEBUG_NXLINK */
 
-static const AudioRendererConfig ar_config =
+static const AudioRendererConfig audren_config =
 {
 	.output_rate     = AudioRendererOutputRate_48kHz,
 	.num_voices      = 24,
@@ -15,7 +15,7 @@ static const AudioRendererConfig ar_config =
 	.num_mix_buffers = 2,
 };
 
-static const SocketInitConfig sock_config =
+static const SocketInitConfig socket_config =
 {
     .bsdsockets_version = 1,
     .tcp_tx_buf_size = 0x8000,
@@ -38,10 +38,10 @@ extern "C" void userAppInit(void)
 	if (R_FAILED(res = plInitialize(PlServiceType_User)))
 		diagAbortWithResult(res);
 
-	if (R_FAILED(res = audrenInitialize(&ar_config)))
+	if (R_FAILED(res = audrenInitialize(&audren_config)))
 		diagAbortWithResult(res);
 
-	if (R_FAILED(res = socketInitialize(&sock_config)))
+	if (R_FAILED(res = socketInitialize(&socket_config)))
 		diagAbortWithResult(res);
 
 #if defined(DEBUG_NXLINK)
@@ -66,10 +66,9 @@ extern "C" void userAppExit(void)
 	romfsExit();
 }
 
-// Main entrypoint
 int main(int argc, char* argv[])
 {
-	HelloWorldDkApp app(&ar_config);
+	HelloWorldDkApp app(&audren_config);
 	app.run();
 	return 0;
 }

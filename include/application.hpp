@@ -18,7 +18,7 @@ namespace
 class HelloWorldDkApp final : public CApplication
 {
 public:
-	HelloWorldDkApp(const AudioRendererConfig *ar_config);
+	HelloWorldDkApp(const AudioRendererConfig *audren_config);
 	~HelloWorldDkApp();
 
 private:

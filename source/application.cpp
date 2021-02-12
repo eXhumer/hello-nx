@@ -7,7 +7,7 @@ void OutputDkDebug(void* userData, const char* context, DkResult result, const c
 	printf("Context: %s\nResult: %d\nMessage: %s\n", context, result, message);
 }
 
-HelloWorldDkApp::HelloWorldDkApp(const AudioRendererConfig *ar_config)
+HelloWorldDkApp::HelloWorldDkApp(const AudioRendererConfig *audren_config)
 {
 	// Create the deko3d device
 	this->m_device = dk::DeviceMaker{}.setCbDebug(OutputDkDebug).create();
@@ -56,7 +56,7 @@ HelloWorldDkApp::HelloWorldDkApp(const AudioRendererConfig *ar_config)
 	if (R_FAILED(rc = plGetSharedFontByType(&font, PlSharedFontType_Standard)))
 		diagAbortWithResult(rc);
 
-	if (R_FAILED(rc = audrvCreate(&drv, ar_config, 2)))
+	if (R_FAILED(rc = audrvCreate(&drv, audren_config, 2)))
 		diagAbortWithResult(rc);
 
 	int mpid = audrvMemPoolAdd(&drv, m_audioBuffer.getCpuAddr(), audio_pool_size);
