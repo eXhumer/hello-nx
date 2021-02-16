@@ -6,8 +6,8 @@
 #include <nanovg/framework/CMemPool.h>
 #include <nanovg_dk.h>
 
-#include "hello.h"
-#include "perf.h"
+#include "hello.hpp"
+#include "perf.hpp"
 
 namespace
 {
@@ -50,8 +50,8 @@ private:
 	std::optional<nvg::DkRenderer> m_renderer;
 	NVGcontext* m_vg;
 
-	HelloWorldScreenData m_data;
-	PerfGraph m_fps;
+	HelloWorldScreen *m_hello;
+	PerfGraph *m_fps;
 	float m_prevTime;
 	int m_standard_font;
 	PadState m_pad;

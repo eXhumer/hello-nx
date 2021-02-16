@@ -42,13 +42,12 @@ LDFLAGS		:=	-specs=$(DEVKITPRO)/libnx/switch.specs $(ARCH)
 # For Deko3D Builds (smallest binary output)
 LIBS	:= -lnanovg -ldeko3d -lnx
 
-CFILES		:=	$(foreach SOURCE,$(SOURCES),$(wildcard $(SOURCE)/*.c))
 CPPFILES	:=	$(foreach SOURCE,$(SOURCES),$(wildcard $(SOURCE)/*.cpp))
 GLSLFILES	:=	$(wildcard $(SHADERS)/*.glsl)
 BINFILES	:=	$(wildcard $(DATA)/*.bin)
 OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
 HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
-OFILES_SRC	:=	$(CFILES:%.c=%.o) $(CPPFILES:%.cpp=%.o)
+OFILES_SRC	:=	$(CPPFILES:%.cpp=%.o)
 OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
 DEPENDS		:=	$(OFILES_SRC:%.o=%.d)
 INCFLAGS	:=	$(foreach LIBDIR,$(LIBDIRS),-I$(LIBDIR)/include) \
@@ -111,12 +110,6 @@ $(ROMFS_SHADERS)/%.dksh: $(SHADERS)/%.glsl
 	uam -s comp -o $@ $<
 
 endif
-
-%.o:	%.c
-	$(CC) -MMD -MP -MF $(@:%.o=%.d) $(CFLAGS) $(INCFLAGS) -c $< -o $@
-
-%.o:	%.cc
-	$(CXX) -MMD -MP -MF $(@:%.o=%.d) $(CFLAGS) $(INCFLAGS) $(CXXFLAGS) -c $< -o $@
 
 %.o:	%.cpp
 	$(CXX) -MMD -MP -MF $(@:%.o=%.d) $(CFLAGS) $(INCFLAGS) $(CXXFLAGS) -c $< -o $@

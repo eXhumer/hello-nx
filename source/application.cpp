@@ -39,9 +39,6 @@ HelloWorldDkApp::HelloWorldDkApp(const AudioRendererConfig *audren_config)
 	this->m_renderer.emplace(FramebufferWidth, FramebufferHeight, this->m_device, this->m_queue, *this->m_pool_images, *this->m_pool_code, *this->m_pool_data);
 	this->m_vg = nvgCreateDk(&*this->m_renderer, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
-	initGraph(&m_fps, GRAPH_RENDER_FPS, "Frame Time");
-	initHelloWorld(&this->m_data);
-
 	padConfigureInput(1, HidNpadStyleSet_NpadStandard);
 	padInitializeDefault(&this->m_pad);
 
@@ -78,10 +75,18 @@ HelloWorldDkApp::HelloWorldDkApp(const AudioRendererConfig *audren_config)
 	audrvVoiceStart(&drv, 0);
 
 	this->m_standard_font = nvgCreateFontMem(this->m_vg, "switch-standard", static_cast<u8*>(font.address), font.size, 0);
+
+	this->m_hello = new HelloWorldScreen();
+	this->m_fps = new PerfGraph(RenderStyle::FPS, "Frame Time");
 }
 
 HelloWorldDkApp::~HelloWorldDkApp()
 {
+	delete this->m_fps;
+	this->m_fps = nullptr;
+	delete this->m_hello;
+	this->m_hello = nullptr;
+
 	audrvClose(&drv);
 
 	m_audioBuffer.destroy();
@@ -205,13 +210,13 @@ void HelloWorldDkApp::render(u64 ns, int blowup)
 	// Run the main rendering command list
 	this->m_queue.submitCommands(this->m_render_cmdlist);
 
-	updateGraph(&this->m_fps, dt);
+	this->m_fps->update(dt);
 
 	nvgBeginFrame(this->m_vg, FramebufferWidth, FramebufferHeight, 1.0f);
 	{
 		// Render stuff!
-		renderHelloWorld(this->m_vg, FramebufferWidth, FramebufferHeight, 0, 0, &this->m_data);
-		renderGraph(this->m_vg, 5,5, &this->m_fps);
+		this->m_hello->render(this->m_vg, FramebufferWidth, FramebufferHeight, 0, 0);
+		this->m_fps->render(this->m_vg, 5, 5);
 	}
 	nvgEndFrame(this->m_vg);
 
